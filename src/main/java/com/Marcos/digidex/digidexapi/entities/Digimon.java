@@ -1,5 +1,6 @@
 package com.Marcos.digidex.digidexapi.entities;
 
+import com.Marcos.digidex.digidexapi.dto.request.DigimonDTO;
 import com.Marcos.digidex.digidexapi.enums.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Digimon {
+public class Digimon implements Comparable<Digimon> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -74,5 +75,8 @@ public class Digimon {
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REMOVE})
     private List<Attacks> attacks;
 
-
+    @Override
+    public int compareTo(Digimon d2) {
+        return this.getName().compareToIgnoreCase(d2.getName());
+    }
 }

@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DigimonDTO {
+public class DigimonDTO implements Comparable<DigimonDTO> {
 
     private Long id;
 
@@ -84,4 +84,8 @@ public class DigimonDTO {
     @Valid
     private List<Attacks> attacks;
 
+    @Override
+    public int compareTo(DigimonDTO d2) {
+        return this.getName().compareToIgnoreCase(d2.getName());
+    }
 }

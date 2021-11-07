@@ -23,8 +23,10 @@ public class DigiService {
     }
 
     //List all digi
-    public List<DigimonDTO> listAll(){
-        List<Digimon> allDigi = digiRepository.findAll();
+    public List<DigimonDTO> listAll(String orderBy){
+        boolean reversed = orderBy!=null && orderBy.equals("desc") ? true : false;
+        //if(orderBy!=null ){ reversed = orderBy.equals("desc") ? true : false; }
+        List<Digimon> allDigi = SortDigiListByName( digiRepository.findAll(), reversed );
 
         return allDigi.stream()
                 .map( digimon -> ConvertDigimonEntityToDTO(digimon) )
@@ -32,8 +34,9 @@ public class DigiService {
     }
 
     //List 6 per page
-    public List<DigimonDTO> listByPage(Integer page) {
-        List<Digimon> allDigi = digiRepository.findAll();
+    public List<DigimonDTO> listByPage(Integer page, String orderBy) {
+        boolean reversed = orderBy!=null && orderBy.equals("desc") ? true : false;
+        List<Digimon> allDigi = SortDigiListByName( digiRepository.findAll(), reversed );
         int digiListSize = allDigi.size();
 
         List<Digimon> allDigiInPage = Optional.of(
@@ -46,7 +49,6 @@ public class DigiService {
         return allDigiInPage.stream()
                 .map(digimon -> ConvertDigimonEntityToDTO(digimon))
                 .collect(Collectors.toList());
-
     }
 
     //List digi with specific Id
@@ -54,12 +56,16 @@ public class DigiService {
         return ConvertDigimonEntityToDTO(digiRepository.findById(id).orElse(null) );
     }
 
+    public void update(Long id, DigimonDTO digimonDTO){
+        digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
+    }
+
     public void delete(Long id){
         digiRepository.deleteById(id);
     }
 
     private DigimonDTO ConvertDigimonEntityToDTO(Digimon digimon){
-        return DigimonDTO.builder()
+        return digimon!=null ? DigimonDTO.builder()
                 .name(digimon.getName())
                 .imageUrl(digimon.getImageUrl())
                 .hp(digimon.getHp())
@@ -79,11 +85,11 @@ public class DigiService {
                 .previousEvolutionId(digimon.getPreviousEvolutionId())
                 .nextEvolutionId(digimon.getNextEvolutionId())
                 .attacks(digimon.getAttacks())
-                .build();
+                .build() : null;
     }
 
     private Digimon ConvertDigimonDTOEntity(DigimonDTO digimonDTO){
-        return Digimon.builder()
+        return digimonDTO!=null ? Digimon.builder()
                 .name(digimonDTO.getName())
                 .imageUrl(digimonDTO.getImageUrl())
                 .hp(digimonDTO.getHp())
@@ -103,7 +109,14 @@ public class DigiService {
                 .previousEvolutionId(digimonDTO.getPreviousEvolutionId())
                 .nextEvolutionId(digimonDTO.getNextEvolutionId())
                 .attacks(digimonDTO.getAttacks())
-                .build();
+                .build() : null;
+    }
+
+    private List<Digimon> SortDigiListByName(List<Digimon> digimon,boolean isReversed){
+        if(isReversed)
+            Collections.sort(digimon, Collections.reverseOrder());
+        else Collections.sort(digimon);
+        return digimon;
     }
 
 }

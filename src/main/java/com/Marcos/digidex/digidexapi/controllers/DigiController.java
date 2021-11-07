@@ -26,12 +26,13 @@ public class DigiController {
     }
 
     @GetMapping
-    public List<DigimonDTO> listAll(@RequestParam(required = false) String page){
+    public List<DigimonDTO> listAll(@RequestParam(required = false) String page,
+                                    @RequestParam(required = false) String orderBy){
         if(page!= null) {
             String pageNum = page.replaceAll("[^0-9]", "");
-            return pageNum.isEmpty() ? digiService.listByPage(0) : digiService.listByPage(Integer.parseInt(pageNum));
+            return pageNum.isEmpty() ? digiService.listByPage(0,orderBy) : digiService.listByPage(Integer.parseInt(pageNum), orderBy);
         }
-        return digiService.listAll();
+        return digiService.listAll(orderBy);
     }
 
     @GetMapping("/{id}")
@@ -39,10 +40,15 @@ public class DigiController {
         return digiService.findById(id);
     }
 
+    @PutMapping("/{id}")
+    public void updateById(@PathVariable Long id, @RequestBody @Valid DigimonDTO digimonDTO){
+        digiService.update(id,digimonDTO);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) {
-        digiService.delete(id);
+       digiService.delete(id);
     }
 
 }
