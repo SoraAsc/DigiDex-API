@@ -2,6 +2,8 @@ package com.Marcos.digidex.digidexapi.services;
 
 import com.Marcos.digidex.digidexapi.dto.request.DigimonDTO;
 import com.Marcos.digidex.digidexapi.entities.Digimon;
+import com.Marcos.digidex.digidexapi.exceptions.DigiDupFoundException;
+import com.Marcos.digidex.digidexapi.exceptions.DigiNotFoundException;
 import com.Marcos.digidex.digidexapi.repositories.DigiRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +19,16 @@ public class DigiService {
     private DigiRepository digiRepository;
 
     //Create new digi
-    public Digimon createDigimon(DigimonDTO digimonDTO){
-        Digimon digimon = digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
-        return digimon;
+    public DigimonDTO createDigimon(DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
+        verifyIfNameIsDup(digimonDTO.getName());
+        digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
+        return digimonDTO;
     }
 
     //List all digi
     public List<DigimonDTO> listAll(String orderBy){
         boolean reversed = orderBy!=null && orderBy.equals("desc") ? true : false;
-        //if(orderBy!=null ){ reversed = orderBy.equals("desc") ? true : false; }
+
         List<Digimon> allDigi = SortDigiListByName( digiRepository.findAll(), reversed );
 
         return allDigi.stream()
@@ -52,20 +55,29 @@ public class DigiService {
     }
 
     //List digi with specific Id
-    public DigimonDTO findById(Long id){
-        return ConvertDigimonEntityToDTO(digiRepository.findById(id).orElse(null) );
+    public DigimonDTO findById(String id) throws DigiNotFoundException {
+        try {
+            return ConvertDigimonEntityToDTO(verifyIfExists(Long.parseLong(id)));
+        } catch (NumberFormatException e){
+            return ConvertDigimonEntityToDTO(verifyIfExists(id));
+        }
     }
 
-    public void update(Long id, DigimonDTO digimonDTO){
+    public void update(Long id, DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
+        verifyIfExists(id);
+        verifyIfNameIsDup(digimonDTO.getName());
+        digimonDTO.setId(id);
         digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
     }
 
-    public void delete(Long id){
+    public void delete(Long id) throws DigiNotFoundException {
+        verifyIfExists(id);
         digiRepository.deleteById(id);
     }
 
     private DigimonDTO ConvertDigimonEntityToDTO(Digimon digimon){
         return digimon!=null ? DigimonDTO.builder()
+                .id(digimon.getId())
                 .name(digimon.getName())
                 .imageUrl(digimon.getImageUrl())
                 .hp(digimon.getHp())
@@ -90,6 +102,7 @@ public class DigiService {
 
     private Digimon ConvertDigimonDTOEntity(DigimonDTO digimonDTO){
         return digimonDTO!=null ? Digimon.builder()
+                .id(digimonDTO.getId())
                 .name(digimonDTO.getName())
                 .imageUrl(digimonDTO.getImageUrl())
                 .hp(digimonDTO.getHp())
@@ -117,6 +130,20 @@ public class DigiService {
             Collections.sort(digimon, Collections.reverseOrder());
         else Collections.sort(digimon);
         return digimon;
+    }
+
+    private Digimon verifyIfExists(String id) throws DigiNotFoundException {
+        return digiRepository.findByName(id).orElseThrow( () -> new DigiNotFoundException(id));
+    }
+
+    private Digimon verifyIfExists(Long id) throws DigiNotFoundException{
+        return digiRepository.findById(id).orElseThrow(() -> new DigiNotFoundException(id));
+    }
+
+    private void verifyIfNameIsDup(String id) throws DigiDupFoundException {
+        if(digiRepository.findByName(id).isPresent()){
+            throw new DigiDupFoundException(id);
+        }
     }
 
 }

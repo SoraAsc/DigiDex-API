@@ -18,7 +18,7 @@ public class Digimon implements Comparable<Digimon> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column
@@ -74,6 +74,7 @@ public class Digimon implements Comparable<Digimon> {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REMOVE})
     private List<Attacks> attacks;
+
 
     @Override
     public int compareTo(Digimon d2) {

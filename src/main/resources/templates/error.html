@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Error Page</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div>
+        <h1 th:text="${status}">404</h1>
+        <h3 th:text="${error}"></h3>
+        <p th:text="${message}"></p>
+    </div>
+    <pre th:text="${trace}"></pre>
+
+
+</body>
+</html>

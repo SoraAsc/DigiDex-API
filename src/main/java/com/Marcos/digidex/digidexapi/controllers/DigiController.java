@@ -1,7 +1,8 @@
 package com.Marcos.digidex.digidexapi.controllers;
 
 import com.Marcos.digidex.digidexapi.dto.request.DigimonDTO;
-import com.Marcos.digidex.digidexapi.entities.Digimon;
+import com.Marcos.digidex.digidexapi.exceptions.DigiDupFoundException;
+import com.Marcos.digidex.digidexapi.exceptions.DigiNotFoundException;
 import com.Marcos.digidex.digidexapi.services.DigiService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
@@ -21,7 +21,7 @@ public class DigiController {
 
     @PostMapping("/create")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public Digimon createDigimon(@RequestBody @Valid DigimonDTO digimonDTO){
+    public DigimonDTO createDigimon(@RequestBody @Valid DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
         return digiService.createDigimon(digimonDTO);
     }
 
@@ -36,18 +36,18 @@ public class DigiController {
     }
 
     @GetMapping("/{id}")
-    public DigimonDTO findDigiById(@PathVariable Long id){
+    public DigimonDTO findDigiById(@PathVariable String id) throws DigiNotFoundException {
         return digiService.findById(id);
     }
 
     @PutMapping("/{id}")
-    public void updateById(@PathVariable Long id, @RequestBody @Valid DigimonDTO digimonDTO){
+    public void updateById(@PathVariable Long id, @RequestBody @Valid DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
         digiService.update(id,digimonDTO);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long id) {
+    public void deleteById(@PathVariable Long id) throws DigiNotFoundException {
        digiService.delete(id);
     }
 
