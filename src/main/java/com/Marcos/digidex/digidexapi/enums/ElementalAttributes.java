@@ -7,7 +7,17 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ElementalAttributes {
 
-    Fire("");
+    Fire(""),
+    Light(""),
+    Steel(""),
+    Wind(""),
+    Ice(""),
+    Neutral(""),
+    Thunder(""),
+    Wood(""),
+    Land(""),
+    Pitch_Black(""),
+    Water("");
 
     private final String description;
 

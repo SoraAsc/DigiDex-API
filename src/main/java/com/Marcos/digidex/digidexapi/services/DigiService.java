@@ -20,7 +20,7 @@ public class DigiService {
 
     //Create new digi
     public DigimonDTO createDigimon(DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
-        verifyIfNameIsDup(digimonDTO.getName());
+        verifyIfNameIsDup(digimonDTO.getName(),null);
         digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
         return digimonDTO;
     }
@@ -65,7 +65,7 @@ public class DigiService {
 
     public void update(Long id, DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
         verifyIfExists(id);
-        verifyIfNameIsDup(digimonDTO.getName());
+        verifyIfNameIsDup(digimonDTO.getName(),id);
         digimonDTO.setId(id);
         digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
     }
@@ -140,9 +140,10 @@ public class DigiService {
         return digiRepository.findById(id).orElseThrow(() -> new DigiNotFoundException(id));
     }
 
-    private void verifyIfNameIsDup(String id) throws DigiDupFoundException {
-        if(digiRepository.findByName(id).isPresent()){
-            throw new DigiDupFoundException(id);
+    private void verifyIfNameIsDup(String name, Long id) throws DigiDupFoundException {
+        Optional<Digimon> dupDigi = digiRepository.findByName(name);
+        if(dupDigi.isPresent() && (id==null || dupDigi.get().getId() != id) ){
+            throw new DigiDupFoundException(name);
         }
     }
 

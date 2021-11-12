@@ -7,7 +7,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AttackerTypes {
 
-    SA("Short Attacker");
+    SA("Short Attacker"),
+    NA("Near Attacker"),
+    QA("Quick Attacker"),
+    DE("Defender");
 
     private final String description;
 

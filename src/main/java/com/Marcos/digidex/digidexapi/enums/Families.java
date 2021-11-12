@@ -7,9 +7,17 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Families {
 
-    DS("Deep Savers - Digimon who belong to this " +
-            "field are generally aquatic or polar Digimon, or those who dwell in marine areas.");
-
+    DS("Deep Savers"),
+    DR("Dragon's Roar"),
+    JT("Jungle Troopers"),
+    ME("Metal Empire"),
+    NS("Nature Spirits"),
+    NSo("Nightmare Soldiers"),
+    UK("Unknown"),
+    VB("Virus Busters"),
+    WG("Wind Guardians"),
+    DA("Dark Area"),
+    TBD("Any Family");
 
     private final String description;
 
