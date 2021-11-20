@@ -1,6 +1,7 @@
 package com.Marcos.digidex.digidexapi.controllers;
 
 import com.Marcos.digidex.digidexapi.dto.request.DigimonDTO;
+import com.Marcos.digidex.digidexapi.dto.request.DigimonDTOWithoutValidation;
 import com.Marcos.digidex.digidexapi.exceptions.DigiDupFoundException;
 import com.Marcos.digidex.digidexapi.exceptions.DigiNotFoundException;
 import com.Marcos.digidex.digidexapi.services.DigiService;
@@ -40,9 +41,9 @@ public class DigiController {
         return digiService.findById(id);
     }
 
-    @PutMapping("/{id}")
-    public void updateById(@PathVariable Long id, @RequestBody @Valid DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
-        digiService.update(id,digimonDTO);
+    @PatchMapping("/{id}")
+    public void updateById(@PathVariable Long id, @RequestBody @Valid DigimonDTOWithoutValidation digimonDTOW) throws DigiNotFoundException, DigiDupFoundException {
+        digiService.update(id,digimonDTOW);
     }
 
     @DeleteMapping("/{id}")

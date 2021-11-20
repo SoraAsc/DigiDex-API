@@ -26,7 +26,7 @@ public class Attacks {
     @Column(nullable = false)
     private int baseDamage;
 
-    @Column(nullable = true)
+    @Column
     private int multiply;
 
     @Enumerated(EnumType.STRING)
@@ -38,4 +38,5 @@ public class Attacks {
 
     @Column
     private int dsConsumed;
+
 }

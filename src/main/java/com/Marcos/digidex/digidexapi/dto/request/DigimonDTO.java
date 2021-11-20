@@ -25,33 +25,34 @@ public class DigimonDTO implements Comparable<DigimonDTO> {
     private String name;
 
     @NotEmpty
+    @Size(min = 1,max = 255)
     private String imageUrl;
 
     @Min(value = 0)
-    private int hp; //Health Points
+    private Integer hp; //Health Points
 
     @Min(value = 0)
-    private int ds; //Digi-Soul
+    private Integer ds; //Digi-Soul
 
     @Min(value = 0)
-    private int at; //Attack
+    private Integer at; //Attack
 
     @Min(value = 0)
-    private float as; //Attack Speed
-
-    @Min(value = 0)
-    @Max(value = 1)
-    private float ct; //Critical Hit %
-
-    @Min(value = 0)
-    private int ht; //Hit Rate
-
-    @Min(value = 0)
-    private int de; //Defense
+    private Float ats; //Attack Speed
 
     @Min(value = 0)
     @Max(value = 1)
-    private float ev; //Evade %
+    private Float ct; //Critical Hit %
+
+    @Min(value = 0)
+    private Integer ht; //Hit Rate
+
+    @Min(value = 0)
+    private Integer de; //Defense
+
+    @Min(value = 0)
+    @Max(value = 1)
+    private Float ev; //Evade %
 
     @Enumerated(EnumType.STRING)
     private Forms form;
@@ -74,11 +75,16 @@ public class DigimonDTO implements Comparable<DigimonDTO> {
     @Enumerated(EnumType.STRING)
     private List<Families> families;
 
+    private Integer lv;
 
     private Long previousEvolutionId;
+    private String previousEvolutionImageUrl;
 
 
     private Long nextEvolutionId;
+    private Integer nextEvolutionLv;
+    private String nextEvolutionImageUrl;
+
 
     @NotNull
     @Valid

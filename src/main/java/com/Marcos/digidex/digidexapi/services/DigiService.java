@@ -1,6 +1,8 @@
 package com.Marcos.digidex.digidexapi.services;
 
+import com.Marcos.digidex.digidexapi.dto.mapper.DigimonMapper;
 import com.Marcos.digidex.digidexapi.dto.request.DigimonDTO;
+import com.Marcos.digidex.digidexapi.dto.request.DigimonDTOWithoutValidation;
 import com.Marcos.digidex.digidexapi.entities.Digimon;
 import com.Marcos.digidex.digidexapi.exceptions.DigiDupFoundException;
 import com.Marcos.digidex.digidexapi.exceptions.DigiNotFoundException;
@@ -9,6 +11,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,56 +22,63 @@ public class DigiService {
 
     private DigiRepository digiRepository;
 
+    private final DigimonMapper digimonMapper = DigimonMapper.INSTANCE;
+
     //Create new digi
-    public DigimonDTO createDigimon(DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
-        verifyIfNameIsDup(digimonDTO.getName(),null);
-        digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
+    public DigimonDTO createDigimon(DigimonDTO digimonDTO) throws DigiDupFoundException, DigiNotFoundException {
+        verifyIfNameIsDup(digimonDTO.getName(), null);
+        PickEvolutionImage(digimonDTO);
+        digiRepository.save(digimonMapper.toEntity(digimonDTO));
         return digimonDTO;
     }
 
     //List all digi
     public List<DigimonDTO> listAll(String orderBy){
-        boolean reversed = orderBy!=null && orderBy.equals("desc") ? true : false;
+        boolean reversed = orderBy != null && orderBy.equals("desc");
 
         List<Digimon> allDigi = SortDigiListByName( digiRepository.findAll(), reversed );
 
-        return allDigi.stream()
-                .map( digimon -> ConvertDigimonEntityToDTO(digimon) )
-                .collect(Collectors.toList());
+        return allDigi.stream().map(digimonMapper::toDTO).collect(Collectors.toList());
     }
 
     //List 6 per page
     public List<DigimonDTO> listByPage(Integer page, String orderBy) {
-        boolean reversed = orderBy!=null && orderBy.equals("desc") ? true : false;
+        boolean reversed = orderBy != null && orderBy.equals("desc");
         List<Digimon> allDigi = SortDigiListByName( digiRepository.findAll(), reversed );
         int digiListSize = allDigi.size();
 
         List<Digimon> allDigiInPage = Optional.of(
                 allDigi.subList(
-                        digiListSize > page * 6 ? page * 6 : digiListSize,
-                        digiListSize > 6 * (page + 1) ? 6 * (page + 1) : digiListSize
+                        Math.min(digiListSize, page * 6),
+                        Math.min(digiListSize, 6 * (page + 1))
                 )
-        ).orElse(new ArrayList<Digimon>(Collections.EMPTY_LIST));
-
+        ).orElse(new ArrayList<>(Collections.emptyList()));
         return allDigiInPage.stream()
-                .map(digimon -> ConvertDigimonEntityToDTO(digimon))
+                .map(digimonMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    //List digi with specific Id
+    //List digi with specific id
     public DigimonDTO findById(String id) throws DigiNotFoundException {
         try {
-            return ConvertDigimonEntityToDTO(verifyIfExists(Long.parseLong(id)));
+            return digimonMapper.toDTO(verifyIfExists(Long.parseLong(id)));
         } catch (NumberFormatException e){
-            return ConvertDigimonEntityToDTO(verifyIfExists(id));
+            return digimonMapper.toDTO(verifyIfExists(id));
         }
     }
 
-    public void update(Long id, DigimonDTO digimonDTO) throws DigiNotFoundException, DigiDupFoundException {
-        verifyIfExists(id);
-        verifyIfNameIsDup(digimonDTO.getName(),id);
+    public void update(Long id, DigimonDTOWithoutValidation digimonDTOW) throws DigiNotFoundException, DigiDupFoundException {
+        Digimon digimon = verifyIfExists(id);
+        DigimonDTO digimonDTO = digimonMapper.DTOWithoutValidationToDTO(digimonDTOW);
+
+        replaceNotNullProperties(digimon,digimonDTO);
         digimonDTO.setId(id);
-        digiRepository.save(ConvertDigimonDTOEntity(digimonDTO));
+        verifyIfNameIsDup(digimonDTO.getName(),id);
+
+        PickEvolutionImage(digimonDTO);
+
+        System.out.println(digimonDTO);
+        //digiRepository.save(digimonMapper.toEntity(digimonDTO));
     }
 
     public void delete(Long id) throws DigiNotFoundException {
@@ -75,59 +86,9 @@ public class DigiService {
         digiRepository.deleteById(id);
     }
 
-    private DigimonDTO ConvertDigimonEntityToDTO(Digimon digimon){
-        return digimon!=null ? DigimonDTO.builder()
-                .id(digimon.getId())
-                .name(digimon.getName())
-                .imageUrl(digimon.getImageUrl())
-                .hp(digimon.getHp())
-                .ds(digimon.getDs())
-                .at(digimon.getAt())
-                .as(digimon.getAs())
-                .ct(digimon.getCt())
-                .ht(digimon.getHt())
-                .de(digimon.getDe())
-                .ev(digimon.getEv())
-                .form(digimon.getForm())
-                .attribute(digimon.getAttribute())
-                .elementalAttribute(digimon.getElementalAttribute())
-                .attackerType(digimon.getAttackerType())
-                .type(digimon.getType())
-                .families(digimon.getFamilies())
-                .previousEvolutionId(digimon.getPreviousEvolutionId())
-                .nextEvolutionId(digimon.getNextEvolutionId())
-                .attacks(digimon.getAttacks())
-                .build() : null;
-    }
-
-    private Digimon ConvertDigimonDTOEntity(DigimonDTO digimonDTO){
-        return digimonDTO!=null ? Digimon.builder()
-                .id(digimonDTO.getId())
-                .name(digimonDTO.getName())
-                .imageUrl(digimonDTO.getImageUrl())
-                .hp(digimonDTO.getHp())
-                .ds(digimonDTO.getDs())
-                .at(digimonDTO.getAt())
-                .as(digimonDTO.getAs())
-                .ct(digimonDTO.getCt())
-                .ht(digimonDTO.getHt())
-                .de(digimonDTO.getDe())
-                .ev(digimonDTO.getEv())
-                .form(digimonDTO.getForm())
-                .attribute(digimonDTO.getAttribute())
-                .elementalAttribute(digimonDTO.getElementalAttribute())
-                .attackerType(digimonDTO.getAttackerType())
-                .type(digimonDTO.getType())
-                .families(digimonDTO.getFamilies())
-                .previousEvolutionId(digimonDTO.getPreviousEvolutionId())
-                .nextEvolutionId(digimonDTO.getNextEvolutionId())
-                .attacks(digimonDTO.getAttacks())
-                .build() : null;
-    }
-
     private List<Digimon> SortDigiListByName(List<Digimon> digimon,boolean isReversed){
         if(isReversed)
-            Collections.sort(digimon, Collections.reverseOrder());
+            digimon.sort(Collections.reverseOrder());
         else Collections.sort(digimon);
         return digimon;
     }
@@ -142,8 +103,39 @@ public class DigiService {
 
     private void verifyIfNameIsDup(String name, Long id) throws DigiDupFoundException {
         Optional<Digimon> dupDigi = digiRepository.findByName(name);
-        if(dupDigi.isPresent() && (id==null || dupDigi.get().getId() != id) ){
+        if(dupDigi.isPresent() && (id==null || !dupDigi.get().getId().equals(id)) ){
             throw new DigiDupFoundException(name);
+        }
+    }
+
+    private void PickEvolutionImage(DigimonDTO digimonDTO) throws DigiNotFoundException {
+        if (digimonDTO.getNextEvolutionImageUrl() == null && digimonDTO.getNextEvolutionId()>=1) {
+            digimonDTO.setNextEvolutionImageUrl(verifyIfExists(digimonDTO.getNextEvolutionId()).getImageUrl()); //Next
+        }
+        if (digimonDTO.getPreviousEvolutionImageUrl() == null && digimonDTO.getPreviousEvolutionId()>=1) {
+            Digimon digimon = verifyIfExists(digimonDTO.getPreviousEvolutionId()); //Ant
+            digimonDTO.setLv(digimon.getNextEvolutionLv());
+            digimonDTO.setPreviousEvolutionImageUrl(digimon.getImageUrl());
+        }
+    }
+
+    private void replaceNotNullProperties(Object source, DigimonDTO target) {
+        List<Method> allDigiGetMethods = Arrays.stream(DigimonDTOWithoutValidation.class.getDeclaredMethods())
+                .filter(method -> method.getName().contains("get") && !method.getName().contains("Id"))
+                .collect(Collectors.toList());
+
+        for (Method digiGetMethod: allDigiGetMethods ) {
+            String getMethodName = digiGetMethod.getName();
+            try {
+                if(target.getClass().getMethod(getMethodName).invoke(target) == null) {
+                    String setMethodName = getMethodName.replace("get","set");
+
+                    Method method = source.getClass().getMethod(getMethodName);
+                    target.getClass().getMethod(setMethodName, method.getReturnType() ).invoke(target, method.invoke(source));
+                }
+            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                System.out.println("Error while parsing DTO Without Validation to DTO");
+            }
         }
     }
 
