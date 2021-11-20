@@ -78,7 +78,7 @@ public class DigiService {
         PickEvolutionImage(digimonDTO);
 
         System.out.println(digimonDTO);
-        //digiRepository.save(digimonMapper.toEntity(digimonDTO));
+        digiRepository.save(digimonMapper.toEntity(digimonDTO));
     }
 
     public void delete(Long id) throws DigiNotFoundException {
