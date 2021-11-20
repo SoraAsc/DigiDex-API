@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.Marcos.digidex</groupId>
 	<artifactId>digidexapi</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.7-SNAPSHOT</version>
 	<name>digidexapi</name>
 	<description>API contendo informações de vários Digimons do jogo Digimon Masters Online.</description>
 	<properties>
