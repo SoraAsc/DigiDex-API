@@ -77,7 +77,7 @@ public class DigiService {
 
         PickEvolutionImage(digimonDTO);
 
-        System.out.println(digimonDTO);
+        //System.out.println(digimonDTO);
         digiRepository.save(digimonMapper.toEntity(digimonDTO));
     }
 
@@ -109,17 +109,17 @@ public class DigiService {
     }
 
     private void PickEvolutionImage(DigimonDTO digimonDTO) throws DigiNotFoundException {
-        if (digimonDTO.getNextEvolutionImageUrl() == null && digimonDTO.getNextEvolutionId()>=1) {
+        if (digimonDTO.getNextEvolutionImageUrl() == null && digimonDTO.getNextEvolutionId()!=null && digimonDTO.getNextEvolutionId()>=1) {
             digimonDTO.setNextEvolutionImageUrl(verifyIfExists(digimonDTO.getNextEvolutionId()).getImageUrl()); //Next
         }
-        if (digimonDTO.getPreviousEvolutionImageUrl() == null && digimonDTO.getPreviousEvolutionId()>=1) {
+        if (digimonDTO.getPreviousEvolutionImageUrl() == null && digimonDTO.getPreviousEvolutionId()!=null && digimonDTO.getPreviousEvolutionId()>=1) {
             Digimon digimon = verifyIfExists(digimonDTO.getPreviousEvolutionId()); //Ant
             digimonDTO.setLv(digimon.getNextEvolutionLv());
             digimonDTO.setPreviousEvolutionImageUrl(digimon.getImageUrl());
         }
     }
 
-    private void replaceNotNullProperties(Object source, DigimonDTO target) {
+    private void replaceNotNullProperties(Object source, Object target) {
         List<Method> allDigiGetMethods = Arrays.stream(DigimonDTOWithoutValidation.class.getDeclaredMethods())
                 .filter(method -> method.getName().contains("get") && !method.getName().contains("Id"))
                 .collect(Collectors.toList());
